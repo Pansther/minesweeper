@@ -1,47 +1,111 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import cx from 'clsx'
+
+  import {
+    generateMines,
+    countMinesAmount,
+    countAdjacentMines,
+    CONFIG,
+    generateRows,
+    openAdjacent,
+  } from './helpers/mine'
+
+  let firstClicked = $state(true)
+  let difficulty = $state<1 | 2 | 3>(3)
+  let playRows = $state(generateRows(3))
+  let mines = $state<number[][]>([])
+
+  // const mines = $derived(generateMines(difficulty))
+  const remaining = $derived(countMinesAmount(mines))
+
+  // $effect(() => {
+  //   playRows = generateRows(difficulty)
+  //   console.log('playRows', playRows)
+  // })
+
+  const clickItem = (row: number, col: number) => {
+    if (firstClicked) {
+      firstClicked = false
+      mines = generateMines(difficulty, { row, col })
+      playRows = openAdjacent(playRows, row, col)
+    }
+
+    if (playRows[row][col] === 1) {
+      //
+    } else {
+      playRows[row][col] = 1
+    }
+  }
 </script>
 
 <main>
-  <div>
-    <a href="https://vite.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
+  <div>Remaining: {remaining}</div>
+
+  <br />
+
+  <div class={cx('container', `level_${difficulty}`)}>
+    {#each playRows as row, rowIndex}
+      {#each row as col, colIndex}
+        {@const isOpen = col}
+        {@const isMine = mines?.[rowIndex]?.[colIndex] || false}
+        {@const amount = countAdjacentMines(mines, rowIndex, colIndex)}
+
+        <div
+          aria-hidden={false}
+          class={cx('item', { mine: isMine, open: isOpen })}
+          onclick={() => clickItem(rowIndex, colIndex)}
+        >
+          {#if isOpen && amount && !isMine}
+            {amount}
+          {:else if isOpen && isMine}
+            *
+          {/if}
+        </div>
+      {/each}
+    {/each}
   </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
 </main>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
+  .container {
+    display: grid;
+    user-select: none;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+
+    &.level_1 {
+      grid-template-columns: repeat(9, 1fr);
+    }
+
+    &.level_2 {
+      grid-template-columns: repeat(16, 1fr);
+    }
+
+    &.level_3 {
+      grid-template-columns: repeat(32, 1fr);
+    }
+
+    .item {
+      width: 27px;
+      height: 27px;
+      display: grid;
+      place-items: center;
+      box-sizing: border-box;
+      background-color: lightgray;
+      border-right: 1px solid black;
+      border-bottom: 1px solid black;
+
+      &:hover {
+        cursor: pointer;
+      }
+
+      &.open {
+        background-color: transparent;
+      }
+
+      &.mine {
+        /* background-color: red; */
+      }
+    }
   }
 </style>
