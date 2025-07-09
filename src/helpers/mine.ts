@@ -1,3 +1,8 @@
+import { ItemType, MineType } from '../types/mine'
+
+const { Blank, Flag, Open } = ItemType
+const { Empty, Mine } = MineType
+
 export const CONFIG = {
   1: {
     rows: 9,
@@ -8,8 +13,8 @@ export const CONFIG = {
     percent: 0.15,
   },
   3: {
-    rows: 32,
-    percent: 0.2,
+    rows: 24,
+    percent: 0.4,
   },
 } as const
 
@@ -51,8 +56,8 @@ export const generateMines = (
     let r = Math.floor(Math.random() * rows)
     let c = Math.floor(Math.random() * rows)
 
-    if (minefield[r][c] === 0) {
-      minefield[r][c] = 1
+    if (minefield[r][c] === Empty) {
+      minefield[r][c] = Mine
       minesPlaced++
     }
   }
@@ -82,7 +87,7 @@ export const countAdjacentMines = (
     const newCol = col + dx
 
     if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-      if (minefield?.[newRow][newCol] === 1) {
+      if (minefield?.[newRow][newCol] === Mine) {
         mineCount++
       }
     }
@@ -99,14 +104,14 @@ export const removeAdjacentMines = (
   const rows = minefield?.length
   const cols = minefield[0]?.length
 
-  minefield[row][col] = 0
+  minefield[row][col] = Blank
 
   for (const [dy, dx] of directions) {
     const newRow = row + dy
     const newCol = col + dx
 
     if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-      minefield[newRow][newCol] = 0
+      minefield[newRow][newCol] = Blank
     }
   }
 
@@ -114,27 +119,71 @@ export const removeAdjacentMines = (
 }
 
 export const openAdjacent = (
-  minefield: number[][],
+  playRows: number[][],
   row: number,
   col: number
 ) => {
-  const rows = minefield?.length
-  const cols = minefield[0]?.length
+  const rows = playRows?.length
+  const cols = playRows[0]?.length
 
   for (const [dy, dx] of directions) {
     const newRow = row + dy
     const newCol = col + dx
 
     if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-      minefield[newRow][newCol] = 1
+      if (playRows[newRow][newCol] === Flag) continue
+
+      playRows[newRow][newCol] = Open
     }
   }
 
-  return minefield
+  return playRows
 }
 
-export const countMinesAmount = (mines: number[][]) => {
-  return mines
+export const checkAllowOpenAdjacent = (
+  playRows: number[][],
+  minefields: number[][],
+  row: number,
+  col: number
+) => {
+  const adjacentMinesAmount = countAdjacentMines(minefields, row, col)
+
+  const rows = playRows?.length
+  const cols = playRows[0]?.length
+
+  let flagAmount = 0
+
+  for (const [dy, dx] of directions) {
+    const newRow = row + dy
+    const newCol = col + dx
+
+    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+      if (playRows[newRow][newCol] === Flag) flagAmount += 1
+    }
+  }
+
+  return flagAmount >= adjacentMinesAmount
+}
+
+export const countMinesAmount = (playRows: number[][], mines: number[][]) => {
+  const flagAmount = playRows
     .flatMap((row) => row)
-    .reduce((prev, current) => prev + current, 0)
+    .reduce((prev, current) => {
+      if (current === Flag) return prev + 1
+      return prev
+    }, 0)
+
+  return (
+    mines.flatMap((row) => row).reduce((prev, current) => prev + current, 0) -
+    flagAmount
+  )
+}
+
+export const checkMines = (playRows: number[][], minefields: number[][]) => {
+  return playRows.some((rows, rowIndex) =>
+    rows.some((col, colIndex) => {
+      if (col === Open) return minefields[rowIndex][colIndex] === Mine
+      return false
+    })
+  )
 }
