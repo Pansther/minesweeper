@@ -2,6 +2,7 @@
   import cx from 'clsx'
 
   import {
+    longpress,
     checkMines,
     openAdjacent,
     generateRows,
@@ -133,12 +134,14 @@
         {@const amount = countAdjacentMines(mines, rowIndex, colIndex)}
 
         <div
+          use:longpress
           aria-hidden={false}
           class={cx('item', {
             open: isOpen,
             mine: isMine && (isOpen || playState === 'fail'),
           })}
           onclick={() => clickItem(rowIndex, colIndex)}
+          onlongpress={() => flagItem(rowIndex, colIndex)}
           oncontextmenu={() => flagItem(rowIndex, colIndex)}
         >
           {#if isOpen && amount && !isMine}

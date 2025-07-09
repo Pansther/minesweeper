@@ -14,7 +14,7 @@ export const CONFIG = {
   },
   3: {
     rows: 24,
-    percent: 0.4,
+    percent: 0.25,
   },
 } as const
 
@@ -32,7 +32,7 @@ const directions = [
 export const generateRows = (difficulty: 1 | 2 | 3) => {
   let emptyRows: number[][] = []
 
-  const { rows, percent } = CONFIG[difficulty]
+  const { rows } = CONFIG[difficulty]
 
   for (let i = 0; i < rows; i++) {
     emptyRows.push(new Array(rows).fill(0))
@@ -186,4 +186,33 @@ export const checkMines = (playRows: number[][], minefields: number[][]) => {
       return false
     })
   )
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+export function longpress(node, threshold = 150) {
+  const handle_mousedown = () => {
+    let start = Date.now()
+
+    const timeout = setTimeout(() => {
+      node.dispatchEvent(new CustomEvent('longpress'))
+    }, threshold)
+
+    const cancel = () => {
+      clearTimeout(timeout)
+      node.removeEventListener('mousemove', cancel)
+      node.removeEventListener('mouseup', cancel)
+    }
+
+    node.addEventListener('mousemove', cancel)
+    node.addEventListener('mouseup', cancel)
+  }
+
+  node.addEventListener('mousedown', handle_mousedown)
+
+  return {
+    destroy() {
+      node.removeEventListener('mousedown', handle_mousedown)
+    },
+  }
 }
