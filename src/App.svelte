@@ -10,6 +10,7 @@
     countMinesAmount,
     countAdjacentMines,
     checkAllowOpenAdjacent,
+    checkIsAdjacent,
   } from './helpers/mine'
 
   import { Difficulty, ItemType } from './types'
@@ -21,6 +22,10 @@
   let playRows = $state(generateRows(Hard))
   let mines = $state<number[][]>([])
   let playState = $state<'idle' | 'play' | 'fail' | 'complete'>('idle')
+  let currentHoverIndex = $state<[number | undefined, number | undefined]>([
+    undefined,
+    undefined,
+  ])
 
   const remaining = $derived(countMinesAmount(playRows, mines))
 
@@ -88,6 +93,19 @@
     playRows = generateRows(difficulty)
   }
 
+  const onMouseover = (row: number, col: number) => {
+    if (playState !== 'play') {
+      currentHoverIndex = [undefined, undefined]
+      return
+    }
+
+    if (playRows?.[row][col] !== Open) {
+      currentHoverIndex = [undefined, undefined]
+    } else {
+      currentHoverIndex = [row, col]
+    }
+  }
+
   $effect(() => {
     const isAllOpen = playRows
       .flatMap((row) => row)
@@ -134,6 +152,12 @@
         {@const isMine = mines?.[rowIndex]?.[colIndex] || false}
         {@const isShowMine = isMine && (isOpen || playState === 'fail')}
         {@const amount = countAdjacentMines(mines, rowIndex, colIndex)}
+        {@const isAdjacent = checkIsAdjacent(
+          playRows,
+          rowIndex,
+          colIndex,
+          currentHoverIndex,
+        )}
 
         <div
           use:longpress
@@ -141,9 +165,15 @@
           class={cx('item', {
             open: isOpen,
             mine: isShowMine,
+            adjacent: isAdjacent,
+            play: playState === 'play',
           })}
           onclick={() => clickItem(rowIndex, colIndex)}
           onlongpress={() => flagItem(rowIndex, colIndex)}
+          onfocus={() => onMouseover(rowIndex, colIndex)}
+          onmouseover={() => onMouseover(rowIndex, colIndex)}
+          onmouseleave={() => (currentHoverIndex = [undefined, undefined])}
+          oncontextmenu={() => flagItem(rowIndex, colIndex)}
         >
           {#if isOpen && amount && !isMine}
             {amount}
@@ -202,20 +232,32 @@
       display: grid;
       place-items: center;
       box-sizing: border-box;
-      background-color: lightgray;
       border-right: 1px solid black;
       border-bottom: 1px solid black;
+      transition: background-color 0.2s;
+      background-color: rgb(226, 226, 226);
 
-      &:hover {
+      &.play:hover {
         cursor: pointer;
+        background-color: rgb(182, 237, 255);
+      }
+
+      @media only screen and (min-width: 768px) {
+        &.adjacent {
+          background-color: rgb(245, 255, 198);
+        }
       }
 
       &.open {
         background-color: transparent;
+
+        &.play:hover {
+          background-color: rgb(182, 237, 255);
+        }
       }
 
       &.mine {
-        background-color: red;
+        background-color: red !important;
       }
     }
   }

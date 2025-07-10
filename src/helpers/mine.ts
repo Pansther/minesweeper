@@ -166,6 +166,29 @@ export const checkAllowOpenAdjacent = (
   return flagAmount >= adjacentMinesAmount
 }
 
+export const checkIsAdjacent = (
+  playRows: number[][],
+  row: number,
+  col: number,
+  target: [number | undefined, number | undefined]
+) => {
+  if (!target?.[0] || !target?.[1]) return
+
+  const rows = playRows?.length
+  const cols = playRows[0]?.length
+
+  for (const [dy, dx] of directions) {
+    const newRow = row + dy
+    const newCol = col + dx
+
+    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+      if (newRow === target[0] && newCol === target[1]) return true
+    }
+  }
+
+  return false
+}
+
 export const countMinesAmount = (playRows: number[][], mines: number[][]) => {
   const flagAmount = playRows
     .flatMap((row) => row)
