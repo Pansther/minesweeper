@@ -128,13 +128,9 @@
 </svelte:head>
 
 <main>
-  <div class="navigation">
-    <div>
-      <button onclick={() => changeDifficulty(Easy)}>Easy</button>
-      <button onclick={() => changeDifficulty(Medium)}>Medium</button>
-      <button onclick={() => changeDifficulty(Hard)}>Hard</button>
-    </div>
+  <br />
 
+  <div class="remaining">
     {#if playState === 'fail'}
       <button onclick={restart}>Restart</button>
     {:else if playState === 'idle'}
@@ -148,8 +144,6 @@
       <div>Remaining: {remaining}</div>
     {/if}
   </div>
-
-  <br />
 
   <div
     role="grid"
@@ -200,32 +194,86 @@
       {/each}
     {/each}
   </div>
+
+  <div class="navigation">
+    <div class="difficulty">
+      <button onclick={() => changeDifficulty(Easy)}>Easy</button>
+      <button onclick={() => changeDifficulty(Medium)}>Medium</button>
+      <button onclick={() => changeDifficulty(Hard)}>Hard</button>
+    </div>
+  </div>
 </main>
 
 <style>
   main {
     display: flex;
-    min-width: 800px;
-    min-height: 800px;
+    margin-top: 48px;
     align-items: center;
     flex-direction: column;
     justify-content: flex-start;
     font-family: 'Bai Jamjuree', sans-serif;
   }
 
+  .remaining {
+    top: 0;
+    left: 50%;
+    width: 100%;
+    height: 64px;
+    display: flex;
+    position: fixed;
+    padding: 8px 16px;
+    align-items: center;
+    justify-content: center;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
   .navigation {
     gap: 8px;
-    width: 80%;
+    width: 100%;
     height: 40px;
     display: flex;
+    padding: 32px 16px;
     align-items: center;
     justify-content: space-between;
+
+    .difficulty {
+      gap: 8px;
+      display: flex;
+      margin-top: 40px;
+      flex-direction: row;
+
+      button:nth-child(1) {
+        background-color: #175526;
+      }
+
+      button:nth-child(2) {
+        background-color: #173e55;
+      }
+
+      button:nth-child(3) {
+        background-color: #551717;
+      }
+    }
+    
+    @media only screen and (min-width: 768px) {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      position: fixed;
+      
+      .difficulty {
+        margin-top: 0;
+      }
+    }
   }
 
   .container {
     display: grid;
+    overflow: auto;
     user-select: none;
-    width: fit-content;
+    /* width: fit-content; */
+    max-width: 100vw;
     border-top: 1px solid black;
     border-left: 1px solid black;
 
