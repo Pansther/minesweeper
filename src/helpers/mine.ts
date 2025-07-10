@@ -33,6 +33,16 @@ const DIRECTIONS = [
   [1, 1],
 ] as const
 
+export const DANGER_LEVEL_COLORS = [
+  '#28A745', // Level 1: ปลอดภัย (เขียวเข้มสดใส)
+  '#20C997', // Level 2: ค่อนข้างปลอดภัย (เขียวอมฟ้า)
+  '#FFC107', // Level 3: ระมัดระวังเล็กน้อย (เหลืองส้ม)
+  '#FD7E14', // Level 4: ระมัดระวัง (ส้มสด) - จุดกึ่งกลาง
+  '#DC3545', // Level 5: แจ้งเตือน (แดงอมส้ม)
+  '#E01D2D', // Level 6: อันตรายสูง (แดงเข้ม)
+  '#8B0000', // Level 7: อันตรายมาก (แดงเลือดหมู/โกเมน)
+] as const
+
 const isValidCoordinate = (
   row: number,
   col: number,
