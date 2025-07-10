@@ -252,9 +252,11 @@
       transition: background-color 0.2s;
       background-color: rgb(226, 226, 226);
 
-      &.play:hover {
-        cursor: pointer;
-        background-color: rgb(182, 237, 255);
+      @media only screen and (min-width: 768px) {
+        &.play:hover {
+          cursor: pointer;
+          background-color: rgb(182, 237, 255);
+        }
       }
 
       @media only screen and (min-width: 768px) {
@@ -267,8 +269,10 @@
         font-weight: 700;
         background-color: transparent;
 
-        &.play:hover {
-          background-color: rgb(182, 237, 255);
+        @media only screen and (min-width: 768px) {
+          &.play:hover {
+            background-color: rgb(182, 237, 255);
+          }
         }
       }
 
