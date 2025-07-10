@@ -274,6 +274,7 @@
     user-select: none;
     /* width: fit-content; */
     max-width: 100vw;
+    touch-action: manipulation;
     border-top: 1px solid black;
     border-left: 1px solid black;
 
@@ -290,8 +291,8 @@
     }
 
     .item {
-      width: 27px;
-      height: 27px;
+      width: 40px;
+      height: 40px;
       display: grid;
       place-items: center;
       box-sizing: border-box;
@@ -299,8 +300,11 @@
       border-bottom: 1px solid black;
       transition: background-color 0.2s;
       background-color: rgb(226, 226, 226);
-
+      
       @media only screen and (min-width: 768px) {
+        width: 27px;
+        height: 27px;
+
         &.play:hover {
           cursor: pointer;
           background-color: rgb(182, 237, 255);
