@@ -6,11 +6,12 @@
     checkMines,
     openAdjacent,
     generateRows,
+    flagAdjacent,
     generateMines,
+    checkIsAdjacent,
     countMinesAmount,
     countAdjacentMines,
     checkAllowOpenAdjacent,
-    checkIsAdjacent,
   } from './helpers/mine'
 
   import { Difficulty, ItemType } from './types'
@@ -70,9 +71,9 @@
 
     const itemStatus = playRows[row][col]
 
-    if (itemStatus === Open) return
-
-    if (itemStatus === Flag) {
+    if (itemStatus === Open) {
+      flagAdjacent(playRows, mines, row, col)
+    } else if (itemStatus === Flag) {
       playRows[row][col] = Blank
     } else {
       playRows[row][col] = Flag
@@ -164,6 +165,7 @@
           aria-hidden={false}
           class={cx('item', {
             open: isOpen,
+            flag: isFlag,
             mine: isShowMine,
             adjacent: isAdjacent,
             play: playState === 'play',
@@ -254,6 +256,10 @@
         &.play:hover {
           background-color: rgb(182, 237, 255);
         }
+      }
+
+      &.flag {
+        background-color: rgb(200, 255, 200);
       }
 
       &.mine {

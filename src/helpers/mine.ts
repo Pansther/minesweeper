@@ -97,6 +97,33 @@ export const countAdjacentMines = (
   return mineCount
 }
 
+export const countAdjacentBlocks = (
+  playRows: number[][],
+  row: number,
+  col: number
+) => {
+  if (!playRows?.length) return 0
+
+  const rows = playRows?.length
+  const cols = playRows[0]?.length
+  let blockCount = 0
+
+  for (const [dy, dx] of directions) {
+    const newRow = row + dy
+    const newCol = col + dx
+
+    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+      const itemStatus = playRows[newRow][newCol]
+
+      if (itemStatus === Blank || itemStatus === Flag) {
+        blockCount++
+      }
+    }
+  }
+
+  return blockCount
+}
+
 export const removeAdjacentMines = (
   minefield: number[][],
   row: number,
@@ -135,6 +162,37 @@ export const openAdjacent = (
       if (playRows[newRow][newCol] === Flag) continue
 
       playRows[newRow][newCol] = Open
+    }
+  }
+
+  return playRows
+}
+
+export const flagAdjacent = (
+  playRows: number[][],
+  minefields: number[][],
+  row: number,
+  col: number
+) => {
+  const isAmountEqualRemainingBlock =
+    countAdjacentBlocks(playRows, row, col) ===
+    countAdjacentMines(minefields, row, col)
+
+  if (!isAmountEqualRemainingBlock) return
+
+  const rows = playRows?.length
+  const cols = playRows[0]?.length
+
+  for (const [dy, dx] of directions) {
+    const newRow = row + dy
+    const newCol = col + dx
+
+    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+      const itemStatus = playRows[newRow][newCol]
+
+      if (itemStatus === Open) continue
+
+      playRows[newRow][newCol] = Flag
     }
   }
 
