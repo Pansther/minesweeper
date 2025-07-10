@@ -8,3 +8,9 @@ export enum MineType {
   Empty = 0,
   Mine = 1,
 }
+
+export enum Difficulty {
+  Easy = 1,
+  Medium = 2,
+  Hard = 3,
+}

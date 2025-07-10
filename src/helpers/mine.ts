@@ -1,18 +1,19 @@
-import { ItemType, MineType } from '../types/mine'
+import { Difficulty, ItemType, MineType } from '../types'
 
 const { Blank, Flag, Open } = ItemType
 const { Empty, Mine } = MineType
+const { Easy, Medium, Hard } = Difficulty
 
 export const CONFIG = {
-  1: {
+  [Easy]: {
     rows: 9,
     percent: 0.1,
   },
-  2: {
+  [Medium]: {
     rows: 16,
     percent: 0.15,
   },
-  3: {
+  [Hard]: {
     rows: 24,
     percent: 0.25,
   },
@@ -29,7 +30,7 @@ const directions = [
   [1, 1],
 ]
 
-export const generateRows = (difficulty: 1 | 2 | 3) => {
+export const generateRows = (difficulty: Difficulty) => {
   let emptyRows: number[][] = []
 
   const { rows } = CONFIG[difficulty]
@@ -42,7 +43,7 @@ export const generateRows = (difficulty: 1 | 2 | 3) => {
 }
 
 export const generateMines = (
-  difficulty: 1 | 2 | 3,
+  difficulty: Difficulty,
   firstClicked: { row: number; col: number }
 ) => {
   const { rows, percent } = CONFIG[difficulty]
@@ -188,31 +189,57 @@ export const checkMines = (playRows: number[][], minefields: number[][]) => {
   )
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-export function longpress(node, threshold = 150) {
-  const handle_mousedown = () => {
-    let start = Date.now()
+export const longpress = (node: HTMLElement, threshold = 150) => {
+  let timeout: ReturnType<typeof setTimeout>
+  let isLongPress = false
 
-    const timeout = setTimeout(() => {
-      node.dispatchEvent(new CustomEvent('longpress'))
+  const handle_touchstart = (event: TouchEvent) => {
+    isLongPress = false
+
+    timeout = setTimeout(() => {
+      isLongPress = true
+      const customEvent = new CustomEvent('longpress')
+      node.dispatchEvent(customEvent)
     }, threshold)
 
-    const cancel = () => {
-      clearTimeout(timeout)
-      node.removeEventListener('mousemove', cancel)
-      node.removeEventListener('mouseup', cancel)
-    }
-
-    node.addEventListener('mousemove', cancel)
-    node.addEventListener('mouseup', cancel)
+    node.addEventListener('touchend', handle_touchend_cancel, { once: true })
+    node.addEventListener('touchmove', handle_touchend_cancel, { once: true })
+    node.addEventListener('touchcancel', handle_touchend_cancel, { once: true })
   }
 
-  node.addEventListener('mousedown', handle_mousedown)
+  const handle_touchend_cancel = (event: TouchEvent) => {
+    clearTimeout(timeout)
+
+    if (isLongPress) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+    }
+
+    node.removeEventListener('touchend', handle_touchend_cancel)
+    node.removeEventListener('touchmove', handle_touchend_cancel)
+    node.removeEventListener('touchcancel', handle_touchend_cancel)
+  }
+
+  const handle_click = (event: MouseEvent) => {
+    if (isLongPress) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      isLongPress = false
+    }
+  }
+
+  node.addEventListener('touchstart', handle_touchstart)
+
+  node.addEventListener('click', handle_click, true)
 
   return {
     destroy() {
-      node.removeEventListener('mousedown', handle_mousedown)
+      node.removeEventListener('touchstart', handle_touchstart)
+      node.removeEventListener('touchend', handle_touchend_cancel)
+      node.removeEventListener('touchmove', handle_touchend_cancel)
+      node.removeEventListener('touchcancel', handle_touchend_cancel)
+      node.removeEventListener('click', handle_click, true)
+      clearTimeout(timeout)
     },
   }
 }

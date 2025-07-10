@@ -12,18 +12,19 @@
     checkAllowOpenAdjacent,
   } from './helpers/mine'
 
-  import { ItemType } from './types/mine'
+  import { Difficulty, ItemType } from './types'
 
-  let difficulty = $state<1 | 2 | 3>(3)
-  let playRows = $state(generateRows(3))
+  const { Blank, Flag, Open } = ItemType
+  const { Easy, Medium, Hard } = Difficulty
+
+  let difficulty = $state<Difficulty>(Hard)
+  let playRows = $state(generateRows(Hard))
   let mines = $state<number[][]>([])
   let playState = $state<'idle' | 'play' | 'fail' | 'complete'>('idle')
 
   const remaining = $derived(countMinesAmount(playRows, mines))
 
-  const { Blank, Flag, Open } = ItemType
-
-  const changeDifficulty = (target: 1 | 2 | 3) => {
+  const changeDifficulty = (target: Difficulty) => {
     difficulty = target
     restart()
   }
@@ -99,9 +100,9 @@
 <main>
   <div class="navigation">
     <div>
-      <button onclick={() => changeDifficulty(1)}>Easy</button>
-      <button onclick={() => changeDifficulty(2)}>Medium</button>
-      <button onclick={() => changeDifficulty(3)}>Hard</button>
+      <button onclick={() => changeDifficulty(Easy)}>Easy</button>
+      <button onclick={() => changeDifficulty(Medium)}>Medium</button>
+      <button onclick={() => changeDifficulty(Hard)}>Hard</button>
     </div>
 
     {#if playState === 'fail'}
@@ -128,9 +129,10 @@
   >
     {#each playRows as row, rowIndex}
       {#each row as col, colIndex}
-        {@const isOpen = col === 1}
-        {@const isFlag = col === 2}
+        {@const isOpen = col === Open}
+        {@const isFlag = col === Flag}
         {@const isMine = mines?.[rowIndex]?.[colIndex] || false}
+        {@const isShowMine = isMine && (isOpen || playState === 'fail')}
         {@const amount = countAdjacentMines(mines, rowIndex, colIndex)}
 
         <div
@@ -138,17 +140,16 @@
           aria-hidden={false}
           class={cx('item', {
             open: isOpen,
-            mine: isMine && (isOpen || playState === 'fail'),
+            mine: isShowMine,
           })}
           onclick={() => clickItem(rowIndex, colIndex)}
           onlongpress={() => flagItem(rowIndex, colIndex)}
-          oncontextmenu={() => flagItem(rowIndex, colIndex)}
         >
           {#if isOpen && amount && !isMine}
             {amount}
           {:else if isFlag}
             F
-          {:else if isMine && (isOpen || playState === 'fail')}
+          {:else if isShowMine}
             *
           {/if}
         </div>
