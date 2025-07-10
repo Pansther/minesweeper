@@ -5,13 +5,14 @@
     longpress,
     checkMines,
     openAdjacent,
-    generateRows,
     flagAdjacent,
     generateMines,
     checkIsAdjacent,
+    createEmptyGrid,
     countMinesAmount,
     countAdjacentMines,
     checkAllowOpenAdjacent,
+    CONFIG,
   } from './helpers/mine'
 
   import { Difficulty, ItemType } from './types'
@@ -19,9 +20,9 @@
   const { Blank, Flag, Open } = ItemType
   const { Easy, Medium, Hard } = Difficulty
 
-  let difficulty = $state<Difficulty>(Hard)
-  let playRows = $state(generateRows(Hard))
   let mines = $state<number[][]>([])
+  let difficulty = $state<Difficulty>(Hard)
+  let playRows = $state(createEmptyGrid(CONFIG[Hard].rows, CONFIG[Hard].cols))
   let playState = $state<'idle' | 'play' | 'fail' | 'complete'>('idle')
   let currentHoverIndex = $state<[number | undefined, number | undefined]>([
     undefined,
@@ -91,7 +92,7 @@
   const restart = () => {
     playState = 'idle'
     mines = []
-    playRows = generateRows(difficulty)
+    playRows = createEmptyGrid(CONFIG[difficulty].rows, CONFIG[difficulty].cols)
   }
 
   const onMouseover = (row: number, col: number) => {
@@ -154,10 +155,10 @@
         {@const isShowMine = isMine && (isOpen || playState === 'fail')}
         {@const amount = countAdjacentMines(mines, rowIndex, colIndex)}
         {@const isAdjacent = checkIsAdjacent(
-          playRows,
           rowIndex,
           colIndex,
           currentHoverIndex,
+          playRows,
         )}
 
         <div
@@ -168,7 +169,7 @@
             flag: isFlag,
             mine: isShowMine,
             adjacent: isAdjacent,
-            play: playState === 'play',
+            play: playState === 'idle' || playState === 'play',
           })}
           onclick={() => clickItem(rowIndex, colIndex)}
           onlongpress={() => flagItem(rowIndex, colIndex)}
@@ -263,7 +264,7 @@
       }
 
       &.mine {
-        background-color: red !important;
+        background-color: rgb(255, 160, 160) !important;
       }
     }
   }

@@ -7,19 +7,22 @@ const { Easy, Medium, Hard } = Difficulty
 export const CONFIG = {
   [Easy]: {
     rows: 9,
+    cols: 9,
     percent: 0.1,
   },
   [Medium]: {
     rows: 16,
+    cols: 16,
     percent: 0.15,
   },
   [Hard]: {
     rows: 24,
+    cols: 24,
     percent: 0.25,
   },
 } as const
 
-const directions = [
+const DIRECTIONS = [
   [-1, -1],
   [-1, 0],
   [-1, 1],
@@ -28,72 +31,82 @@ const directions = [
   [1, -1],
   [1, 0],
   [1, 1],
-]
+] as const
 
-export const generateRows = (difficulty: Difficulty) => {
-  let emptyRows: number[][] = []
-
-  const { rows } = CONFIG[difficulty]
-
-  for (let i = 0; i < rows; i++) {
-    emptyRows.push(new Array(rows).fill(0))
+const isValidCoordinate = (
+  row: number,
+  col: number,
+  grid: number[][]
+): boolean => {
+  if (!grid || grid.length === 0 || grid[0].length === 0) {
+    return false
   }
+  const maxRows = grid.length
+  const maxCols = grid[0].length
+  return row >= 0 && row < maxRows && col >= 0 && col < maxCols
+}
 
-  return emptyRows
+export const createEmptyGrid = (rows: number, cols: number): number[][] => {
+  const grid: number[][] = []
+  for (let i = 0; i < rows; i++) {
+    grid.push(new Array(cols).fill(0))
+  }
+  return grid
 }
 
 export const generateMines = (
   difficulty: Difficulty,
   firstClicked: { row: number; col: number }
-) => {
-  const { rows, percent } = CONFIG[difficulty]
+): number[][] => {
+  const { rows, cols, percent } = CONFIG[difficulty]
+  let minefield = createEmptyGrid(rows, cols)
+  const numMines = Math.floor(rows * cols * percent)
 
-  const minefield = generateRows(difficulty)
-  const numMines = Math.floor(rows * rows * percent)
+  const safeCells = new Set<string>()
+
+  for (const [dy, dx] of DIRECTIONS) {
+    const safeRow = firstClicked.row + dy
+    const safeCol = firstClicked.col + dx
+    if (isValidCoordinate(safeRow, safeCol, minefield)) {
+      safeCells.add(`${safeRow},${safeCol}`)
+    }
+  }
+  safeCells.add(`${firstClicked.row},${firstClicked.col}`)
 
   let minesPlaced = 0
-
   while (minesPlaced < numMines) {
-    let r = Math.floor(Math.random() * rows)
-    let c = Math.floor(Math.random() * rows)
+    const r = Math.floor(Math.random() * rows)
+    const c = Math.floor(Math.random() * cols)
+    const cellKey = `${r},${c}`
 
-    if (minefield[r][c] === Empty) {
+    if (!safeCells.has(cellKey) && minefield[r][c] === Empty) {
       minefield[r][c] = Mine
       minesPlaced++
     }
   }
 
-  const safeMinefield = removeAdjacentMines(
-    minefield,
-    firstClicked.row,
-    firstClicked.col
-  )
-
-  return safeMinefield
+  return minefield
 }
 
 export const countAdjacentMines = (
   minefield: number[][],
   row: number,
   col: number
-) => {
-  if (!minefield?.length) return 0
+): number => {
+  if (!isValidCoordinate(row, col, minefield)) return 0
 
-  const rows = minefield?.length
-  const cols = minefield[0]?.length
   let mineCount = 0
-
-  for (const [dy, dx] of directions) {
+  for (const [dy, dx] of DIRECTIONS) {
     const newRow = row + dy
     const newCol = col + dx
 
-    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-      if (minefield?.[newRow][newCol] === Mine) {
-        mineCount++
-      }
+    if (
+      isValidCoordinate(newRow, newCol, minefield) &&
+      minefield[newRow][newCol] === Mine
+    ) {
+      mineCount++
     }
   }
-
   return mineCount
 }
 
@@ -101,70 +114,41 @@ export const countAdjacentBlocks = (
   playRows: number[][],
   row: number,
   col: number
-) => {
-  if (!playRows?.length) return 0
+): number => {
+  if (!isValidCoordinate(row, col, playRows)) return 0
 
-  const rows = playRows?.length
-  const cols = playRows[0]?.length
   let blockCount = 0
-
-  for (const [dy, dx] of directions) {
+  for (const [dy, dx] of DIRECTIONS) {
     const newRow = row + dy
     const newCol = col + dx
 
-    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+    if (isValidCoordinate(newRow, newCol, playRows)) {
       const itemStatus = playRows[newRow][newCol]
-
       if (itemStatus === Blank || itemStatus === Flag) {
         blockCount++
       }
     }
   }
-
   return blockCount
-}
-
-export const removeAdjacentMines = (
-  minefield: number[][],
-  row: number,
-  col: number
-) => {
-  const rows = minefield?.length
-  const cols = minefield[0]?.length
-
-  minefield[row][col] = Blank
-
-  for (const [dy, dx] of directions) {
-    const newRow = row + dy
-    const newCol = col + dx
-
-    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-      minefield[newRow][newCol] = Blank
-    }
-  }
-
-  return minefield
 }
 
 export const openAdjacent = (
   playRows: number[][],
   row: number,
   col: number
-) => {
-  const rows = playRows?.length
-  const cols = playRows[0]?.length
+): number[][] => {
+  if (!isValidCoordinate(row, col, playRows)) return playRows
 
-  for (const [dy, dx] of directions) {
+  for (const [dy, dx] of DIRECTIONS) {
     const newRow = row + dy
     const newCol = col + dx
 
-    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+    if (isValidCoordinate(newRow, newCol, playRows)) {
       if (playRows[newRow][newCol] === Flag) continue
 
       playRows[newRow][newCol] = Open
     }
   }
-
   return playRows
 }
 
@@ -173,29 +157,31 @@ export const flagAdjacent = (
   minefields: number[][],
   row: number,
   col: number
-) => {
-  const isAmountEqualRemainingBlock =
-    countAdjacentBlocks(playRows, row, col) ===
-    countAdjacentMines(minefields, row, col)
+): number[][] | undefined => {
+  if (
+    !isValidCoordinate(row, col, playRows) ||
+    !isValidCoordinate(row, col, minefields)
+  )
+    return undefined
 
-  if (!isAmountEqualRemainingBlock) return
+  const adjacentMines = countAdjacentMines(minefields, row, col)
+  const adjacentUnknownBlocks = countAdjacentBlocks(playRows, row, col)
 
-  const rows = playRows?.length
-  const cols = playRows[0]?.length
+  if (adjacentUnknownBlocks !== adjacentMines) {
+    return undefined
+  }
 
-  for (const [dy, dx] of directions) {
+  for (const [dy, dx] of DIRECTIONS) {
     const newRow = row + dy
     const newCol = col + dx
 
-    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+    if (isValidCoordinate(newRow, newCol, playRows)) {
       const itemStatus = playRows[newRow][newCol]
-
       if (itemStatus === Open) continue
 
       playRows[newRow][newCol] = Flag
     }
   }
-
   return playRows
 }
 
@@ -204,20 +190,24 @@ export const checkAllowOpenAdjacent = (
   minefields: number[][],
   row: number,
   col: number
-) => {
+): boolean => {
+  if (
+    !isValidCoordinate(row, col, playRows) ||
+    !isValidCoordinate(row, col, minefields)
+  )
+    return false
+
   const adjacentMinesAmount = countAdjacentMines(minefields, row, col)
-
-  const rows = playRows?.length
-  const cols = playRows[0]?.length
-
   let flagAmount = 0
 
-  for (const [dy, dx] of directions) {
+  for (const [dy, dx] of DIRECTIONS) {
     const newRow = row + dy
     const newCol = col + dx
 
-    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-      if (playRows[newRow][newCol] === Flag) flagAmount += 1
+    if (isValidCoordinate(newRow, newCol, playRows)) {
+      if (playRows[newRow][newCol] === Flag) {
+        flagAmount++
+      }
     }
   }
 
@@ -225,49 +215,49 @@ export const checkAllowOpenAdjacent = (
 }
 
 export const checkIsAdjacent = (
-  playRows: number[][],
-  row: number,
-  col: number,
-  target: [number | undefined, number | undefined]
-) => {
-  if (!target?.[0] || !target?.[1]) return
+  sourceRow: number,
+  sourceCol: number,
+  target: [number | undefined, number | undefined],
+  grid?: number[][]
+): boolean => {
+  if (target[0] === undefined || target[1] === undefined) return false
 
-  const rows = playRows?.length
-  const cols = playRows[0]?.length
+  for (const [dy, dx] of DIRECTIONS) {
+    const newRow = sourceRow + dy
+    const newCol = sourceCol + dx
 
-  for (const [dy, dx] of directions) {
-    const newRow = row + dy
-    const newCol = col + dx
+    if (grid && !isValidCoordinate(newRow, newCol, grid)) {
+      continue
+    }
 
-    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-      if (newRow === target[0] && newCol === target[1]) return true
+    if (newRow === target[0] && newCol === target[1]) {
+      return true
     }
   }
-
   return false
 }
 
-export const countMinesAmount = (playRows: number[][], mines: number[][]) => {
-  const flagAmount = playRows
-    .flatMap((row) => row)
-    .reduce((prev, current) => {
-      if (current === Flag) return prev + 1
-      return prev
-    }, 0)
-
-  return (
-    mines.flatMap((row) => row).reduce((prev, current) => prev + current, 0) -
-    flagAmount
-  )
+export const countMinesAmount = (
+  playRows: number[][],
+  minefields: number[][]
+): number => {
+  const flaggedCells = playRows.flat().filter((item) => item === Flag).length
+  const totalMines = minefields.flat().filter((item) => item === Mine).length
+  return totalMines - flaggedCells
 }
 
-export const checkMines = (playRows: number[][], minefields: number[][]) => {
-  return playRows.some((rows, rowIndex) =>
-    rows.some((col, colIndex) => {
-      if (col === Open) return minefields[rowIndex][colIndex] === Mine
-      return false
-    })
-  )
+export const checkMines = (
+  playRows: number[][],
+  minefields: number[][]
+): boolean => {
+  for (let r = 0; r < playRows.length; r++) {
+    for (let c = 0; c < playRows[r].length; c++) {
+      if (playRows[r][c] === Open && minefields[r][c] === Mine) {
+        return true
+      }
+    }
+  }
+  return false
 }
 
 export const longpress = (node: HTMLElement, threshold = 150) => {
