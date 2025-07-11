@@ -18,7 +18,7 @@ export const CONFIG = {
   [Hard]: {
     rows: 24,
     cols: 24,
-    percent: 0.25,
+    percent: 0.20,
   },
 } as const
 
@@ -221,7 +221,7 @@ export const checkAllowOpenAdjacent = (
     }
   }
 
-  return flagAmount >= adjacentMinesAmount
+  return flagAmount === adjacentMinesAmount
 }
 
 export const checkIsAdjacent = (
