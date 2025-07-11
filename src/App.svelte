@@ -206,6 +206,25 @@
 </main>
 
 <div class="copy">Copyright © {new Date().getFullYear()} wwDev</div>
+<div class="footer">
+  <a target="_blank" href="https://github.com/Pansther/minesweeper-svelte">
+    GitHub
+  </a>
+  |
+  <a
+    target="_blank"
+    href="https://github.com/Pansther/minesweeper-svelte?tab=readme-ov-file#how-to-play"
+  >
+    How to Play
+  </a>
+  |
+  <a
+    target="_blank"
+    href="https://github.com/Pansther/minesweeper-svelte?tab=readme-ov-file#%E0%B8%A7%E0%B8%B4%E0%B8%98%E0%B8%B5%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%99"
+  >
+    วิธีเล่น
+  </a>
+</div>
 
 <style>
   main {
@@ -234,7 +253,6 @@
 
   .navigation {
     gap: 8px;
-    width: 100%;
     height: 40px;
     display: flex;
     padding: 32px 16px;
@@ -262,7 +280,6 @@
 
     @media only screen and (min-width: 768px) {
       left: 0;
-      right: 0;
       bottom: 0;
       position: fixed;
 
@@ -349,6 +366,10 @@
   .copy {
     margin-top: 32px;
     color: lightgray;
-    font-family: 'Bai Jamjuree', sans-serif;
+  }
+  
+  .footer {
+    color: lightgray;
+    margin: 8px 0 32px;
   }
 </style>
