@@ -221,6 +221,7 @@
     height: 64px;
     display: flex;
     position: fixed;
+    font-size: 20px;
     padding: 8px 16px;
     align-items: center;
     justify-content: center;
@@ -244,15 +245,15 @@
       flex-direction: row;
 
       button:nth-child(1) {
-        background-color: #175526;
+        background-color: #1d9d3d;
       }
 
       button:nth-child(2) {
-        background-color: #173e55;
+        background-color: #2d7eac;
       }
 
       button:nth-child(3) {
-        background-color: #551717;
+        background-color: #a82e2e;
       }
     }
     
@@ -291,19 +292,21 @@
     }
 
     .item {
-      width: 40px;
-      height: 40px;
+      width: 45px;
+      height: 45px;
       display: grid;
+      font-size: 26px;
       place-items: center;
       box-sizing: border-box;
       border-right: 1px solid black;
       border-bottom: 1px solid black;
       transition: background-color 0.2s;
-      background-color: rgb(226, 226, 226);
+      background-color: rgb(213, 213, 213);
       
       @media only screen and (min-width: 768px) {
-        width: 27px;
-        height: 27px;
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
 
         &.play:hover {
           cursor: pointer;
