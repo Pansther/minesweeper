@@ -204,6 +204,8 @@
   </div>
 </main>
 
+<div class="copy">Copyright © {new Date().getFullYear()} wwDev</div>
+
 <style>
   main {
     display: flex;
@@ -241,17 +243,17 @@
     .difficulty {
       gap: 8px;
       display: flex;
-      margin-top: 40px;
       flex-direction: row;
-
+      margin: 40px auto 0;
+      
       button:nth-child(1) {
         background-color: #1d9d3d;
       }
-
+      
       button:nth-child(2) {
         background-color: #2d7eac;
       }
-
+      
       button:nth-child(3) {
         background-color: #a82e2e;
       }
@@ -264,7 +266,7 @@
       position: fixed;
       
       .difficulty {
-        margin-top: 0;
+        margin: 0;
       }
     }
   }
@@ -302,7 +304,7 @@
       border-bottom: 1px solid black;
       transition: background-color 0.2s;
       background-color: rgb(213, 213, 213);
-      
+
       @media only screen and (min-width: 768px) {
         width: 30px;
         height: 30px;
@@ -341,5 +343,11 @@
         background-color: rgb(255, 160, 160) !important;
       }
     }
+  }
+
+  .copy {
+    margin-top: 32px;
+    color: lightgray;
+    font-family: 'Bai Jamjuree', sans-serif;
   }
 </style>
