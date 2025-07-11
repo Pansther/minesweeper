@@ -316,6 +316,7 @@
       height: 45px;
       display: grid;
       font-size: 26px;
+      user-select: none;
       place-items: center;
       box-sizing: border-box;
       border-right: 1px solid black;
