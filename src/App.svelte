@@ -16,15 +16,16 @@
     checkAllowOpenAdjacent,
   } from './helpers/mine'
 
-  import { Difficulty, ItemType } from './types'
+  import { Difficulty, GameState, ItemType } from './types'
 
   const { Blank, Flag, Open } = ItemType
   const { Easy, Medium, Hard } = Difficulty
+  const { Idle, Play, Fail, Complete } = GameState
 
   let mines = $state<number[][]>([])
   let difficulty = $state<Difficulty>(Hard)
+  let playState = $state<GameState>(Idle)
   let playRows = $state(createEmptyGrid(CONFIG[Hard].rows, CONFIG[Hard].cols))
-  let playState = $state<'idle' | 'play' | 'fail' | 'complete'>('idle')
   let currentHoverIndex = $state<[number | undefined, number | undefined]>([
     undefined,
     undefined,
@@ -38,13 +39,13 @@
   }
 
   const clickItem = (row: number, col: number) => {
-    if (playState === 'idle') {
-      playState = 'play'
+    if (playState === Idle) {
+      playState = Play
       mines = generateMines(difficulty, { row, col })
       playRows = openAdjacent(playRows, row, col)
     }
 
-    if (playState !== 'play') return
+    if (playState !== Play) return
 
     const itemStatus = playRows[row][col]
 
@@ -69,7 +70,7 @@
   }
 
   const flagItem = (row: number, col: number) => {
-    if (playState !== 'play') return
+    if (playState !== Play) return
 
     const itemStatus = playRows[row][col]
 
@@ -86,18 +87,18 @@
     const isFoundMine = checkMines(playRows, mines)
 
     if (isFoundMine) {
-      playState = 'fail'
+      playState = Fail
     }
   }
 
   const restart = () => {
-    playState = 'idle'
+    playState = Idle
     mines = []
     playRows = createEmptyGrid(CONFIG[difficulty].rows, CONFIG[difficulty].cols)
   }
 
   const onMouseover = (row: number, col: number) => {
-    if (playState !== 'play') {
+    if (playState !== Play) {
       currentHoverIndex = [undefined, undefined]
       return
     }
@@ -114,7 +115,7 @@
       .flatMap((row) => row)
       .every((col) => col === Open || col === Flag)
 
-    if (isAllOpen) playState = 'complete'
+    if (isAllOpen) playState = Complete
   })
 </script>
 
@@ -131,11 +132,11 @@
   <br />
 
   <div class="remaining">
-    {#if playState === 'fail'}
+    {#if playState === Fail}
       <button onclick={restart}>Restart</button>
-    {:else if playState === 'idle'}
+    {:else if playState === Idle}
       <div>Click block to Start</div>
-    {:else if playState === 'complete'}
+    {:else if playState === Complete}
       <div style="display: flex; gap: 8px; align-items: center;">
         <div>You Win !</div>
         <button onclick={restart}>Restart</button>
@@ -156,7 +157,7 @@
         {@const isOpen = col === Open}
         {@const isFlag = col === Flag}
         {@const isMine = mines?.[rowIndex]?.[colIndex] || false}
-        {@const isShowMine = isMine && (isOpen || playState === 'fail')}
+        {@const isShowMine = isMine && (isOpen || playState === Fail)}
         {@const amount = countAdjacentMines(mines, rowIndex, colIndex)}
         {@const isAdjacent = checkIsAdjacent(
           rowIndex,
@@ -173,7 +174,7 @@
             flag: isFlag,
             mine: isShowMine,
             adjacent: isAdjacent,
-            play: playState === 'idle' || playState === 'play',
+            play: playState === Idle || playState === Play,
           })}
           style:color={DANGER_LEVEL_COLORS[amount - 1]}
           onclick={() => clickItem(rowIndex, colIndex)}
@@ -245,26 +246,26 @@
       display: flex;
       flex-direction: row;
       margin: 40px auto 0;
-      
+
       button:nth-child(1) {
         background-color: #1d9d3d;
       }
-      
+
       button:nth-child(2) {
         background-color: #2d7eac;
       }
-      
+
       button:nth-child(3) {
         background-color: #a82e2e;
       }
     }
-    
+
     @media only screen and (min-width: 768px) {
       left: 0;
       right: 0;
       bottom: 0;
       position: fixed;
-      
+
       .difficulty {
         margin: 0;
       }

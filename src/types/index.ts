@@ -14,3 +14,10 @@ export enum Difficulty {
   Medium = 2,
   Hard = 3,
 }
+
+export enum GameState {
+  Idle = 'idle',
+  Play = 'play',
+  Fail = 'fail',
+  Complete = 'complete',
+}
