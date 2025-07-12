@@ -40,8 +40,8 @@ export const DANGER_LEVEL_COLORS = [
   '#FD7E14',
   '#DC3545',
   '#E01D2D',
-  '#8B0000',
-  '#4A0404',
+  '#9F0000',
+  '#d7005d',
 ] as const
 
 const isValidCoordinate = (
