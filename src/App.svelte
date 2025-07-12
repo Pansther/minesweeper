@@ -11,6 +11,7 @@
     checkIsAdjacent,
     createEmptyGrid,
     countMinesAmount,
+    revealEmptyCells,
     countAdjacentMines,
     DANGER_LEVEL_COLORS,
     checkAllowOpenAdjacent,
@@ -42,7 +43,7 @@
     if (playState === Idle) {
       playState = Play
       mines = generateMines(difficulty, { row, col })
-      playRows = openAdjacent(playRows, row, col)
+      playRows = revealEmptyCells(playRows, mines, row, col)
     }
 
     if (playState !== Play) return
@@ -50,16 +51,22 @@
     const itemStatus = playRows[row][col]
 
     if (itemStatus === Open) {
-      const isAllowOpenAdjacent = checkAllowOpenAdjacent(
-        playRows,
-        mines,
-        row,
-        col,
-      )
+      const adjacentMinesAmount = countAdjacentMines(mines, row, col)
 
-      if (!isAllowOpenAdjacent) return
+      if (adjacentMinesAmount === 0) {
+        playRows = revealEmptyCells(playRows, mines, row, col)
+      } else {
+        const isAllowOpenAdjacent = checkAllowOpenAdjacent(
+          playRows,
+          mines,
+          row,
+          col,
+        )
 
-      playRows = openAdjacent(playRows, row, col)
+        if (!isAllowOpenAdjacent) return
+
+        playRows = openAdjacent(playRows, row, col)
+      }
     } else if (itemStatus === Flag) {
       //
     } else {
@@ -368,7 +375,7 @@
     margin-top: 32px;
     color: lightgray;
   }
-  
+
   .footer {
     color: lightgray;
     margin: 8px 0 32px;

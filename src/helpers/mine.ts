@@ -18,7 +18,7 @@ export const CONFIG = {
   [Hard]: {
     rows: 24,
     cols: 24,
-    percent: 0.20,
+    percent: 0.23,
   },
 } as const
 
@@ -155,7 +155,9 @@ export const openAdjacent = (
     const newCol = col + dx
 
     if (isValidCoordinate(newRow, newCol, playRows)) {
-      if (playRows[newRow][newCol] === Flag) continue
+      const blockStatus = playRows[newRow][newCol]
+
+      if (blockStatus === Flag) continue
 
       playRows[newRow][newCol] = Open
     }
@@ -269,6 +271,63 @@ export const checkMines = (
     }
   }
   return false
+}
+
+export const revealEmptyCells = (
+  playRows: number[][],
+  minefields: number[][],
+  startRow: number,
+  startCol: number
+): number[][] => {
+  if (!isValidCoordinate(startRow, startCol, playRows)) {
+    return playRows
+  }
+
+  if (
+    minefields[startRow][startCol] === Mine ||
+    playRows[startRow][startCol] === Flag
+  ) {
+    return playRows
+  }
+
+  const queue: [number, number][] = [[startRow, startCol]]
+  const visited = new Set<string>()
+
+  visited.add(`${startRow},${startCol}`)
+
+  playRows[startRow][startCol] = Open
+
+  let head = 0
+  while (head < queue.length) {
+    const [currentRow, currentCol] = queue[head++]
+
+    for (const [dy, dx] of DIRECTIONS) {
+      const newRow = currentRow + dy
+      const newCol = currentCol + dx
+      const cellKey = `${newRow},${newCol}`
+
+      if (
+        isValidCoordinate(newRow, newCol, playRows) &&
+        !visited.has(cellKey) &&
+        playRows[newRow][newCol] !== Flag
+      ) {
+        visited.add(cellKey)
+
+        const neighborMines = countAdjacentMines(minefields, newRow, newCol)
+
+        if (minefields[newRow][newCol] === Mine) {
+          continue
+        } else if (neighborMines === 0) {
+          playRows[newRow][newCol] = Open
+          queue.push([newRow, newCol])
+        } else {
+          playRows[newRow][newCol] = Open
+        }
+      }
+    }
+  }
+
+  return playRows
 }
 
 export const longpress = (node: HTMLElement, threshold = 150) => {
