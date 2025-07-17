@@ -330,6 +330,35 @@ export const revealEmptyCells = (
   return playRows
 }
 
+export const hint = (playRows: number[][], minefields: number[][]) => {
+  const rows = minefields.length
+  const cols = minefields[0].length
+
+  const unrevealedMines: { row: number; col: number }[] = []
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (playRows[r][c] !== Open && playRows[r][c] !== Flag) {
+        unrevealedMines.push({ row: r, col: c })
+      }
+    }
+  }
+
+  if (!unrevealedMines.length) return
+
+  const randomIndex = Math.floor(Math.random() * unrevealedMines.length)
+
+  const { row, col } = unrevealedMines[randomIndex]
+
+  if (minefields[row][col] === Mine) {
+    playRows[row][col] = ItemType.Flag
+  } else {
+    playRows[row][col] = ItemType.Open
+  }
+
+  return { row, col }
+}
+
 export const longpress = (node: HTMLElement, threshold = 150) => {
   let timeout: ReturnType<typeof setTimeout>
   let isLongPress = false

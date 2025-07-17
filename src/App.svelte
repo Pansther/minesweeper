@@ -2,6 +2,7 @@
   import cx from 'clsx'
 
   import {
+    hint,
     CONFIG,
     longpress,
     checkMines,
@@ -23,11 +24,16 @@
   const { Easy, Medium, Hard } = Difficulty
   const { Idle, Play, Fail, Complete } = GameState
 
+  let hintAmount = $state(3)
   let mines = $state<number[][]>([])
   let difficulty = $state<Difficulty>(Hard)
   let playState = $state<GameState>(Idle)
   let playRows = $state(createEmptyGrid(CONFIG[Hard].rows, CONFIG[Hard].cols))
   let currentHoverIndex = $state<[number | undefined, number | undefined]>([
+    undefined,
+    undefined,
+  ])
+  let hintItemIndex = $state<[number | undefined, number | undefined]>([
     undefined,
     undefined,
   ])
@@ -93,6 +99,8 @@
   const checkPlayRowsAndMines = () => {
     const isFoundMine = checkMines(playRows, mines)
 
+    hintItemIndex = [undefined, undefined]
+
     if (isFoundMine) {
       playState = Fail
     }
@@ -115,6 +123,31 @@
     } else {
       currentHoverIndex = [row, col]
     }
+  }
+
+  const onClickHint = () => {
+    if (playState !== Play) return
+    if (hintAmount <= 0) return
+
+    hintAmount--
+
+    const hintItem = hint(playRows, mines)
+
+    if (!hintItem) return
+
+    const { row, col } = hintItem
+
+    const item = document.querySelector(`#item-${row}-${col}`)
+
+    if (!item) return
+
+    item.scrollIntoView({
+      block: 'center',
+      inline: 'center',
+      behavior: 'smooth',
+    })
+
+    hintItemIndex = [row, col]
   }
 
   $effect(() => {
@@ -150,6 +183,11 @@
       </div>
     {:else}
       <div>Remaining: {remaining}</div>
+      {#if hintAmount > 0}
+        <div id="hint" role="button" aria-hidden={false} onclick={onClickHint}>
+          💡
+        </div>
+      {/if}
     {/if}
   </div>
 
@@ -166,6 +204,8 @@
         {@const isMine = mines?.[rowIndex]?.[colIndex] || false}
         {@const isShowMine = isMine && (isOpen || playState === Fail)}
         {@const amount = countAdjacentMines(mines, rowIndex, colIndex)}
+        {@const isHint =
+          rowIndex === hintItemIndex[0] && colIndex === hintItemIndex[1]}
         {@const isAdjacent = checkIsAdjacent(
           rowIndex,
           colIndex,
@@ -177,12 +217,14 @@
           use:longpress
           aria-hidden={false}
           class={cx('item', {
+            hint: isHint,
             open: isOpen,
             flag: isFlag,
             mine: isShowMine,
             adjacent: isAdjacent,
             play: playState === Idle || playState === Play,
           })}
+          id={`item-${rowIndex}-${colIndex}`}
           style:color={DANGER_LEVEL_COLORS[amount - 1]}
           onclick={() => clickItem(rowIndex, colIndex)}
           onlongpress={() => flagItem(rowIndex, colIndex)}
@@ -258,6 +300,17 @@
     background-color: rgba(0, 0, 0, 0.5);
   }
 
+  #hint {
+    padding: 2px 7px;
+    margin-left: 8px;
+    border-radius: 6px;
+    background-color: rgb(255, 255, 247);
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
   .navigation {
     gap: 8px;
     height: 40px;
@@ -324,6 +377,8 @@
       display: grid;
       font-size: 26px;
       user-select: none;
+      -ms-user-select: none;
+      -webkit-user-select: none;
       place-items: center;
       box-sizing: border-box;
       border-right: 1px solid black;
@@ -367,6 +422,17 @@
 
       &.mine {
         background-color: rgb(255, 160, 160) !important;
+      }
+
+      &.hint {
+        position: relative;
+
+        &::before {
+          inset: 0;
+          content: '';
+          position: absolute;
+          border: 3px solid #5ce4ff;
+        }
       }
     }
   }

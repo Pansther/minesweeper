@@ -17,8 +17,8 @@
 * {
   user-select: none;
   -ms-user-select: none;
-  box-sizing: border-box;
   -webkit-user-select: none;
+  box-sizing: border-box;
 }
 
 a {
