@@ -109,6 +109,7 @@
   const restart = () => {
     playState = Idle
     mines = []
+    hintAmount = 3
     playRows = createEmptyGrid(CONFIG[difficulty].rows, CONFIG[difficulty].cols)
   }
 
